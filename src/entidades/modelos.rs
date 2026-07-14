@@ -57,6 +57,7 @@ pub enum Severidade{
     Baixa
 }
 
+#[derive(Debug, Clone)]
 pub struct Leitura{
     pub estacao_id: u32,
     pub tipo_estacao: TipoEstacao,
@@ -64,6 +65,15 @@ pub struct Leitura{
     pub vento_kmh: f64,
     pub ciclo: u32, //numero do ciclo de coleta
     pub critico: bool
+}
+
+impl Leitura{
+    pub fn novo(estacao_id: u32, tipo_estacao: TipoEstacao, temperatura: f64,
+                vento_kmh: f64, ciclo: u32, critico: bool) -> Self{
+        Self{
+            estacao_id, tipo_estacao, temperatura, vento_kmh, ciclo, critico
+        }
+    }
 }
 
 pub struct Alerta{
@@ -74,6 +84,15 @@ pub struct Alerta{
     pub valor_registrado: f64,
     pub mensagem: String,
     pub ciclo: u32
+}
+
+impl Alerta{
+    pub fn novo(estacao_id: u32, nome_local: String, tipo_alerta: TipoAlerta,
+                severidade: Severidade, valor_registrado: f64, mensagem: String, ciclo: u32) -> Self{
+        Self{
+            estacao_id, nome_local, tipo_alerta, severidade, valor_registrado, mensagem, ciclo
+        }
+    }
 }
 
 impl fmt::Display for TipoAlerta{
