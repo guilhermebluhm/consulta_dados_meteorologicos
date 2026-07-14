@@ -1,5 +1,6 @@
 use crate::entidades::modelos::TipoAlerta;
 
+#[derive(Debug)]
 pub struct RelatorioResumido{
     pub ciclo: u32, //O ciclo de coleta reportado.
     pub total_leituras: usize, //Quantas leituras aconteceram neste ciclo.
@@ -7,6 +8,7 @@ pub struct RelatorioResumido{
     pub alertas_por_tipo: Vec<(TipoAlerta, usize)> //Contagem agregada — quantos de cada tipo (CalorExtremo, VentoForte, Geada).
 }
 
+#[derive(Debug)]
 pub enum TipoRelatorio{
     Resumido
 }

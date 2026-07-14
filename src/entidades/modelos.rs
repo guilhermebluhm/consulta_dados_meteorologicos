@@ -1,3 +1,7 @@
+use std::fmt;
+use std::fmt::Formatter;
+
+#[derive(Debug)]
 pub struct EstacaoSuperficie{
     pub id: u32,
     pub nome_local: String,
@@ -5,9 +9,10 @@ pub struct EstacaoSuperficie{
     pub longitude: f64,
     pub temperatura_atual: f64,
     pub vento_kmh: f64,
-    pub limite_temperatura_critica: f64
+    pub limite_temperatura_critica: f64,
 }
 
+#[derive(Debug)]
 pub struct EstacaoCosteira{
     pub id: u32,
     pub nome_local: String,
@@ -15,9 +20,10 @@ pub struct EstacaoCosteira{
     pub longitude: f64,
     pub temperatura_atual: f64,
     pub vento_kmh: f64,
-    pub limite_vento_critico: f64
+    pub limite_vento_critico: f64,
 }
 
+#[derive(Debug)]
 pub struct EstacaoMontanha{
     pub id: u32,
     pub nome_local: String,
@@ -26,21 +32,25 @@ pub struct EstacaoMontanha{
     pub altitude_m: f64,
     pub temperatura_atual: f64,
     pub vento_kmh: f64,
-    pub limite_temperatura_congelamento: f64
+    pub limite_temperatura_congelamento: f64,
 }
 
+#[derive(Debug, Clone)]
 pub enum TipoEstacao{
     Superficie,
     Costeira,
     Montanha
 }
 
+#[derive(Debug)]
 pub enum TipoAlerta{
     CalorExtremo,
     VentoForte,
-    Geada
+    Geada,
+    SemOcorrencia
 }
 
+#[derive(Debug)]
 pub enum Severidade{
     Alta,
     Moderada,
@@ -66,14 +76,15 @@ pub struct Alerta{
     pub ciclo: u32
 }
 
-//implementacao do display de TipoAlerta
-impl TipoAlerta{
-    pub fn representar_tipo_alerta(&self) -> &str {
-        match self { 
-            TipoAlerta::CalorExtremo => "Fogo",
+impl fmt::Display for TipoAlerta{
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let texto_formatado = match self {
+            TipoAlerta::CalorExtremo => "Calor",
             TipoAlerta::VentoForte => "Ventania",
             TipoAlerta::Geada => "Frio",
-        }
+            TipoAlerta::SemOcorrencia => "Sem ocorrencia",
+        };
+        write!(f, "{}", texto_formatado)
     }
 }
 
