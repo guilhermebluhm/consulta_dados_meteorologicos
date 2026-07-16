@@ -42,7 +42,7 @@ pub enum TipoEstacao{
     Montanha
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TipoAlerta{
     CalorExtremo,
     VentoForte,

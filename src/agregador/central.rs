@@ -2,6 +2,7 @@ use std::process::id;
 use std::sync::Arc;
 use crate::entidades::modelos::{Alerta, EstacaoCosteira, EstacaoMontanha, EstacaoSuperficie, Leitura, Severidade, TipoAlerta, TipoEstacao};
 use crate::erros::erros_suportados::Erros;
+use crate::relatorios::modelo_relatorio::{FormatoRelatorio, RelatorioResumido, TipoRelatorio};
 
 pub struct estacao_central{
     pub estacoes: Vec<Arc<dyn EstacaoMeteorologica>>,
@@ -29,6 +30,7 @@ pub trait EstacaoMeteorologica : Send + Sync {
 
 }
 
+//seção de operações
 impl estacao_central{
 
     pub fn registrar_leitura(&mut self, estacao_id: u32, ciclo: u32) -> Result<Leitura, Erros>{
@@ -72,6 +74,59 @@ impl estacao_central{
            }
         }
         leituras_registradas
+    }
+
+    pub fn estacoes_criticas(&self) -> Vec<Arc<dyn EstacaoMeteorologica>>{
+        self.estacoes.iter().filter(|f| f.e_critico()).cloned().collect()
+    }
+
+}
+
+//seção de consultas
+impl estacao_central{
+    pub fn leituras_por_estacao(&self, estacao_id: u32) -> Vec<&Leitura>{
+        self.leituras.iter().filter(|f| f.estacao_id == estacao_id).collect()
+    }
+
+    pub fn estacao_mais_quente(&self) -> Option<&Leitura> {
+
+        //quando a comparação envolver f64 por conta das restrições de ord envolvendo NaN
+        //utilizar total_cmp do tipo f64::total_cmp sendo possivel realizar esta ordenação
+        //pois um tipo e apenas suportado por ord quando (a > b ou a < b ou a == b)
+        //e NaN não satisfaz nenhuma condição
+        self.leituras.iter().max_by(|a,b| a.temperatura.total_cmp(&b.temperatura))
+    }
+
+    pub fn gerar_relatorio(&self, tipo_relatorio: TipoRelatorio, ciclo: u32) -> Box<dyn FormatoRelatorio>{
+
+        let numero_leituras = self.leituras.iter().filter(|f| f.ciclo == ciclo).count();
+        let numero_alertas = self.alertas.iter().filter(|f| f.ciclo == ciclo).count();
+
+        let mut alerta_tipo:Vec<(TipoAlerta, usize)> = Vec::new();
+        let mut calor: usize = 1;
+        let mut vento: usize = 1;
+        let mut frio:  usize = 1;
+
+        for i in &self.alertas{
+            match i.tipo_alerta {
+                TipoAlerta::CalorExtremo => {
+                    alerta_tipo.push((i.tipo_alerta.clone(), calor));
+                    calor+=1;
+                }
+                TipoAlerta::VentoForte => {
+                    alerta_tipo.push((i.tipo_alerta.clone(), vento));
+                    vento+=1;
+                }
+                TipoAlerta::Geada => {
+                    alerta_tipo.push((i.tipo_alerta.clone(), frio));
+                    frio+=1;
+                }
+                _ => ()
+            }
+        }
+
+        Box::new(RelatorioResumido::new(ciclo, numero_alertas, numero_leituras, alerta_tipo))
+
     }
 
 }
