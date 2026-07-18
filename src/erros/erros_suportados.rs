@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum Erros{
     EstacaoNaoEncontrada(u32), //Busca por id sem sucesso
     RedeVazia, //Operação que exige ao menos uma estação

@@ -76,6 +76,7 @@ impl Leitura{
     }
 }
 
+#[derive(Debug)]
 pub struct Alerta{
     pub estacao_id: u32,
     pub nome_local: String,

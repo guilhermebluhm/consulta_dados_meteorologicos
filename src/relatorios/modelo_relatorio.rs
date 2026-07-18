@@ -35,7 +35,7 @@ impl FormatoRelatorio for RelatorioResumido{
                                                        self.total_leituras, self.total_alertas));
         titulo_conteudo.push_str("\n");
         for (idx, ele) in self.alertas_por_tipo.iter(){
-            titulo_conteudo.push_str(format!("tipo alerta {} - ocorrencias: {}", idx, ele).as_str());
+            titulo_conteudo.push_str(format!(" tipo alerta {} - ocorrencias: {}", idx, ele).as_str());
         }
         //o box nao atua como uma camada de indireção neste caso
         //está efetivamente consumindo os bytes e tomando sua posse

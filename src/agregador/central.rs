@@ -6,9 +6,9 @@ use crate::relatorios::modelo_relatorio::{FormatoRelatorio, RelatorioResumido, T
 
 pub struct estacao_central{
     pub estacoes: Vec<Arc<dyn EstacaoMeteorologica>>,
-    leituras: Vec<Leitura>,
-    alertas: Vec<Alerta>,
-    ciclo_atual: u32 //numero do ciclo de coleta
+    pub leituras: Vec<Leitura>,
+    pub alertas: Vec<Alerta>,
+    pub ciclo_atual: u32 //numero do ciclo de coleta
 }
 
 pub trait EstacaoMeteorologica : Send + Sync {
