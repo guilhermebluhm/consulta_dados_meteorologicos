@@ -2,15 +2,17 @@ mod entidades;
 mod agregador;
 mod relatorios;
 mod erros;
+mod api;
 
+use std::collections::HashMap;
 use std::sync::Arc;
 use agregador::central::{estacao_central};
 use entidades::modelos::{EstacaoSuperficie, EstacaoCosteira, EstacaoMontanha};
-use relatorios::modelo_relatorio::RelatorioResumido;
-use crate::relatorios::modelo_relatorio::TipoRelatorio;
+use crate::api::openmeteo::{suporte_comm_api, RespostaOpenMeteo};
 
 fn main() {
 
+    /* (testes ja validados)
     let mut central = estacao_central {
         estacoes: Vec::new(),
         leituras: Vec::new(),
@@ -162,5 +164,79 @@ fn main() {
     println!("\n=== Testando gerar_relatorio — Resumido ===");
     let rel_resumido = central.gerar_relatorio(TipoRelatorio::Resumido, central.ciclo_atual);
     println!("Título: {}", rel_resumido.titulo_conteudo());
+     */
+
+    /*
+    // ── 1. Montar uma Central com 3 estações de tipos diferentes ─────
+    let superficie = EstacaoSuperficie {
+        id: 1,
+        nome_local: "Curitiba - Centro".to_string(),
+        latitude: -25.42,
+        longitude: -49.27,
+        temperatura_atual: 24.0,
+        vento_kmh: 10.0,
+        limite_temperatura_critica: 35.0,
+    };
+
+    let costeira = EstacaoCosteira {
+        id: 2,
+        nome_local: "Baía de Paranaguá".to_string(),
+        latitude: -25.52,
+        longitude: -48.51,
+        temperatura_atual: 27.0,
+        vento_kmh: 68.0,
+        limite_vento_critico: 60.0,
+    };
+
+    let montanha = EstacaoMontanha {
+        id: 3,
+        nome_local: "Pico Paraná".to_string(),
+        latitude: -25.28,
+        longitude: -48.75,
+        altitude_m: 1877.0,
+        temperatura_atual: 8.0,
+        vento_kmh: 22.0,
+        limite_temperatura_congelamento: 0.0,
+    };
+
+    let central = estacao_central {
+        estacoes: vec![
+            Arc::new(superficie),
+            Arc::new(costeira),
+            Arc::new(montanha),
+        ],
+        leituras: Vec::new(),
+        alertas: Vec::new(),
+        ciclo_atual: 1,
+    };
+
+    let total_estacoes = central.estacoes.len();
+    let ciclos: u32 = 5;
+
+    // ── 2. Chamar a coleta — se houver deadlock, trava aqui ───────────
+    println!("Iniciando coleta com {} estações × {} ciclos...", total_estacoes, ciclos);
+    let resultado = central.iniciar_ciclo_coleta(ciclos);
+    println!("Coleta concluída — sem deadlock.\n");
+
+    // ── 3. Critério 1 — quantidade total exata ────────────────────────
+    let esperado = total_estacoes * ciclos as usize;
+    println!("=== Critério 1: quantidade total ===");
+    println!("Esperado: {} leituras ({} estações × {} ciclos)", esperado, total_estacoes, ciclos);
+    println!("Recebido: {} leituras", resultado.len());
+
+    if resultado.len() == esperado {
+        println!("✓ Quantidade exata — nenhuma mensagem perdida.\n");
+    } else if resultado.len() < esperado {
+        println!("✗ FALTAM {} leituras — verifique se join() está sendo chamado em TODOS os handles antes do recv esvaziar.\n", esperado - resultado.len());
+    } else {
+        println!("✗ SOBRARAM {} leituras — verifique o range `0..ciclos`.\n", resultado.len() - esperado);
+    }
+    */
+
+    let openmeteo = RespostaOpenMeteo::novo();
+    let resposta = openmeteo.buscar_clima(-25.42, 49.27);
+    if let Ok(resp) = resposta{
+        println!("{:?}", resp);
+    }
 
 }

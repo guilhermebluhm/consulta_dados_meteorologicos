@@ -1,5 +1,6 @@
 use std::process::id;
-use std::sync::Arc;
+use std::sync::{mpsc, Arc};
+use std::thread::JoinHandle;
 use crate::entidades::modelos::{Alerta, EstacaoCosteira, EstacaoMontanha, EstacaoSuperficie, Leitura, Severidade, TipoAlerta, TipoEstacao};
 use crate::erros::erros_suportados::Erros;
 use crate::relatorios::modelo_relatorio::{FormatoRelatorio, RelatorioResumido, TipoRelatorio};
@@ -23,6 +24,7 @@ pub trait EstacaoMeteorologica : Send + Sync {
     fn tipo_alerta(&self) -> TipoAlerta; //TipoAlerta — qual alerta este tipo emite quando crítico
     fn descricao_alerta(&self) -> String;
     fn nivel_severidade(&self) -> Severidade;
+    fn definir_escrita_vento(&mut self, leitura: f64);
     fn ficha(&self) -> String{
         format!("{} tipo @ {} - {}°C / {}km/h", self.tipo().representar_tipo_estacao(), 
                 self.nome_local(), self.temperatura(), self.vento())
@@ -131,6 +133,44 @@ impl estacao_central{
 
 }
 
+impl estacao_central{
+
+    pub fn iniciar_ciclo_coleta(&self, ciclos: u32) -> Vec<Leitura>{
+
+        let mut leituras_registradas: Vec<Leitura> = Vec::new();
+        let (tx, rx) = mpsc::channel();
+        let mut join_handles:Vec<JoinHandle<()>> = Vec::new();
+
+        for estacao in self.estacoes.iter(){
+            let tx_clone = tx.clone();
+            let estacao_clone = estacao.clone();
+            let j = std::thread::spawn(move || {
+                for i in 0..ciclos{
+                    let leitura = Leitura::novo(estacao_clone.id(), estacao_clone.tipo(), estacao_clone.temperatura(),
+                                                estacao_clone.vento(), i, estacao_clone.e_critico());
+                    let _ = tx_clone.send(leitura);
+                }
+            });
+            join_handles.push(j);
+        }
+        drop(tx);
+
+        for i in join_handles{
+            if let Err(err) = i.join(){
+                println!("join error: {:?}", err);
+            }
+        }
+
+        while let Ok(d) = rx.recv(){
+            leituras_registradas.push(d);
+        }
+
+        leituras_registradas
+    }
+
+
+}
+
 impl EstacaoMeteorologica for EstacaoSuperficie{
     fn id(&self) -> u32 {
         self.id
@@ -187,6 +227,10 @@ impl EstacaoMeteorologica for EstacaoSuperficie{
             }
             _ => Severidade::Baixa
         }
+    }
+
+    fn definir_escrita_vento(&mut self, leitura: f64) {
+        self.vento_kmh = leitura;
     }
 }
 
@@ -247,6 +291,10 @@ impl EstacaoMeteorologica for EstacaoCosteira{
             _ => Severidade::Baixa
         }
     }
+
+    fn definir_escrita_vento(&mut self, leitura: f64) {
+        self.vento_kmh = leitura;
+    }
 }
 
 impl EstacaoMeteorologica for EstacaoMontanha{
@@ -305,5 +353,9 @@ impl EstacaoMeteorologica for EstacaoMontanha{
             }
             _ => Severidade::Baixa
         }
+    }
+
+    fn definir_escrita_vento(&mut self, leitura: f64) {
+        self.vento_kmh = leitura;
     }
 }
