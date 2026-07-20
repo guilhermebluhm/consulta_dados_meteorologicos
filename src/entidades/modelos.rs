@@ -31,6 +31,14 @@ pub struct EstacaoCosteira{
     pub limite_vento_critico: f64,
 }
 
+impl EstacaoCosteira{
+    pub fn novo(id: u32, nome_local: String, latitude: f64, longitude: f64, temperatura_atual: f64, vento_kmh: f64, limite_vento_critico: f64) -> Self{
+        Self{
+            id, nome_local, latitude, longitude, temperatura_atual, vento_kmh, limite_vento_critico
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct EstacaoMontanha{
     pub id: u32,
@@ -41,6 +49,14 @@ pub struct EstacaoMontanha{
     pub temperatura_atual: f64,
     pub vento_kmh: f64,
     pub limite_temperatura_congelamento: f64,
+}
+
+impl EstacaoMontanha{
+    pub fn novo(id: u32, nome_local: String, latitude: f64, longitude: f64, altitude_m: f64, temperatura_atual: f64, vento_kmh: f64, limite_temperatura_congelamento:f64) -> Self{
+        Self{
+            id, nome_local, latitude, longitude, altitude_m, temperatura_atual, vento_kmh, limite_temperatura_congelamento
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

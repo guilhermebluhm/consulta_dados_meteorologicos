@@ -6,8 +6,8 @@ mod api;
 
 use std::collections::HashMap;
 use std::sync::Arc;
-use agregador::central::{estacao_central};
 use entidades::modelos::{EstacaoSuperficie, EstacaoCosteira, EstacaoMontanha};
+use crate::agregador::central::EstacaoMeteorologica;
 use crate::api::openmeteo::{suporte_comm_api, RespostaOpenMeteo};
 
 fn main() {
@@ -233,10 +233,33 @@ fn main() {
     }
     */
 
-    let openmeteo = RespostaOpenMeteo::novo();
+/*    let openmeteo = RespostaOpenMeteo::novo();
     let resposta = openmeteo.buscar_clima(-25.42, 49.27);
     if let Ok(resp) = resposta{
         println!("{:?}", resp);
+    }*/
+
+    let superficie = EstacaoSuperficie::novo(
+        1, "Curitiba - Centro".to_string(), -25.42, -49.27, 0.0, 0.0, 35.0
+    );
+    let costeira = EstacaoCosteira::novo(
+        2, "Baía de Paranaguá".to_string(), -25.52, -48.51, 0.0, 0.0, 60.0
+    );
+    let montanha = EstacaoMontanha::novo(
+        3, "Pico Paraná".to_string(), -25.28, -48.75, 1877.0, 0.0, 0.0, 0.0
+    );
+
+    let estacoes_originais: Vec<Arc<dyn EstacaoMeteorologica>> = vec![
+        Arc::new(superficie),
+        Arc::new(costeira),
+        Arc::new(montanha),
+    ];
+
+    let openmeteo_api = RespostaOpenMeteo::novo();
+    println!("qtde esperada: {}", estacoes_originais.len());
+    let servico_api = openmeteo_api.atualizar_estacoes_da_api(estacoes_originais);
+    if let Ok(x) = servico_api {
+        println!("retorno: {}", x);
     }
 
 }

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use crate::agregador::central::EstacaoMeteorologica;
 use crate::erros::erros_suportados::Erros;
-use crate::entidades::modelos::{EstacaoSuperficie, TipoEstacao};
+use crate::entidades::modelos::{EstacaoCosteira, EstacaoMontanha, EstacaoSuperficie, TipoEstacao};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RespostaOpenMeteo{
@@ -60,26 +60,38 @@ pub trait suporte_comm_api{
         Ok(json_resposta)
     }
 
-    fn atualizar_estacoes_da_api(&mut self, estacoes: Vec<&Arc<dyn EstacaoMeteorologica>>) -> Result<usize, Erros> {
+    fn atualizar_estacoes_da_api(&self, estacoes: Vec<Arc<dyn EstacaoMeteorologica>>) -> Result<usize, Erros> {
 
         let mut estacoes_retorno:Vec<Arc<dyn EstacaoMeteorologica>> = Vec::with_capacity(estacoes.len());
 
         for obj in estacoes{
             if let Ok(x) = self.buscar_clima(obj.coordenadas().0, obj.coordenadas().1){
                 match obj.tipo() {
+                    //por conta da ausencia do mutex pois Arc<T> e por default imutavel
+                    //e necessario todo esse processo de reconstrução do objeto
                     TipoEstacao::Superficie => {
                         let estacao_superficie = EstacaoSuperficie::novo(obj.id(), obj.nome_local().to_string(),
                                                                          obj.coordenadas().0, obj.coordenadas().1, x.current_weather.temperature,
                                                                          x.current_weather.windspeed, 35.00);
                         estacoes_retorno.push(Arc::new(estacao_superficie));
                     }
-                    //TODO CONCLUIR AS DEMAIS ESTACOES
-                    _ => ()
+                    TipoEstacao::Costeira => {
+                        let estacao_costeira = EstacaoCosteira::novo(obj.id(), obj.nome_local().to_string(),
+                                                                     obj.coordenadas().0, obj.coordenadas().1, x.current_weather.temperature,
+                                                                     x.current_weather.windspeed, 60.00);
+                        estacoes_retorno.push(Arc::new(estacao_costeira));
+                    }
+                    TipoEstacao::Montanha => {
+                        //API open-meteo nao prove dados sobre altitude logo foi tomando 0.00 por default
+                        let estacao_montanha = EstacaoMontanha::novo(obj.id(), obj.nome_local().to_string(),
+                                                                     obj.coordenadas().0, obj.coordenadas().1, 0.00, x.current_weather.temperature,
+                                                                     x.current_weather.windspeed, 0.00);
+                        estacoes_retorno.push(Arc::new(estacao_montanha));
+                    }
                 };
             }
         }
         Ok(estacoes_retorno.len())
-
     }
 
 }
